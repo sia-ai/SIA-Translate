@@ -136,3 +136,26 @@ class ByteEmbedding(nn.Module):
         x = torch.cat([x[n::self.concatenate_length] for n in range(self.concatenate_length)], dim=2)
         x = self.out_linear(x)
         return x
+
+class ByteUnembedding(nn.Module):
+    def __init__(self, vocab_size=260, embedding_dim=512, concatenate_length=4):
+        super().__init__()
+        self.conv = nn.ConvTranspose1d(embedding_dim, vocab_size, concatenate_length, concatenate_length, 0)
+
+    def forward(self, x): # x: [Batch, embedding_dim, Length]
+        x = torch.transpose(x, 1, 2)
+        x = self.conv(x)
+        x = torch.transpose(x, 1, 2)
+        return x
+
+
+# byte-to-byte transformer model
+class B2BTransformer(nn.Module):
+    def __init__(self, vocab_size=260, d_byte=128, concatenate_length=4, num_embedding_layers=4, d_model=512, num_heads=8, num_encoder_layers=6, num_decoder_layers=6, dim_ffn=2048, max_length=512):
+        self.embedding = ByteEmbedding(vocab_size, d_byte, num_embedding_layers, nn.ReLU, d_model, num_embedding_layers)
+        self.positional_embedding = PositionalEmbedding(d_model, max_length)
+        self.transformer = nn.Transformer(d_model, num_heads, num_encoder_layers, num_decoder_layers)
+        self.unembedding = ByteUnembedding(vocab_size, d_model, concatenate_length)
+
+    def forward(self, src, tgt):
+        pass
