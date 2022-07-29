@@ -127,9 +127,12 @@ class ByteEmbedding(nn.Module):
         b, l, d = x.shape
         # pad
         pad = torch.zeros(b, self.concatenate_length - (l % self.concatenate_length), d, device=x.device)
-        x = torch.cat([x, papd], dim=1)
+        x = torch.cat([x, pad], dim=1)
         
         # embedding
         x = self.embedding(x)
         x = self.layers(x)
 
+        x = torch.cat([x[n::self.concatenate_length] for n in range(self.concatenate_length)], dim=2)
+        x = self.out_linear(x)
+        return x
