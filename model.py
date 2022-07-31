@@ -157,5 +157,4 @@ class B2BTransformer(nn.Module):
         self.transformer = nn.Transformer(d_model, num_heads, num_encoder_layers, num_decoder_layers)
         self.unembedding = ByteUnembedding(vocab_size, d_model, concatenate_length)
 
-    def forward(self, src, tgt):
-        pass
+
