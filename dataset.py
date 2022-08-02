@@ -3,13 +3,13 @@ import subprocess
 import os
 
 class LineSplitedTextDataset(torch.utils.data.Dataset):
-    def __init__(self, list_of_file_path,  split_token=" ", num_split_line=1000, filter=torch.nn.Identity()):
+    def __init__(self, list_of_file_path,  split_token=" ", num_split_line=1000, filter=torch.nn.Identity(), chache_dir="dataset_chache"):
         super().__init__()
         
         self.filter = filter
         self.split_token = split_token
         self.num_split_line = num_split_line
-        self.chache_dir_path = f"./MWP-dataset-chache/"
+        self.chache_dir_path = chache_dir
         # initialize chache
         if not os.path.exists(self.chache_dir_path):
             os.mkdir(self.chache_dir_path)
