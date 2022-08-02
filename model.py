@@ -27,18 +27,20 @@ class ProgressiveLayerWrapper(nn.Module):
         else:
             return (*args, )
 
-class ReformerWrapper(nn.Module):
-    def __init__(self, reformer):
+class ReformerLMWrapper(nn.Module):
+    def __init__(self, reformerlm):
         super().__init__()
-        self.reformer = reformer
-        nl = len(self.reformer.layers.blocks)
+        self.reformerlm = reformerlm
+        nl = len(self.reformerlm.reformer.layers.blocks)
         for n in range(nl):
-            self.reformer.layers.blocks[n].f = ProgressiveLayerWrapper(self.reformer.layers.blocks[n].f)
-            self.reformer.layers.blocks[n].g = ProgressiveLayerWrapper(self.reformer.layers.blocks[n].g)
+            self.reformerlm.reformer.layers.blocks[n].f = ProgressiveLayerWrapper(self.reformerlm.reformer.layers.blocks[n].f)
+            self.reformerlm.reformer.layers.blocks[n].g = ProgressiveLayerWrapper(self.reformerlm.reformer.layers.blocks[n].g)
 
     def set_num_available_layers(self, num_layers):
-        nl = len(self.reformer.layers.blocks)
+        nl = len(self.reformerlm.reformer.layers.blocks)
         for n in range(nl):
             s = nl <= num_layers
-            self.reformer.layers.blocks[n].f.status = s
-            self.reformer.layers.blocks[n].g.status = s
+            self.reformerlm.reformer.layers.blocks[n].f.status = s
+            self.reformerlm.reformer.layers.blocks[n].g.status = s
+
+
