@@ -35,7 +35,7 @@ class PositionalEncoding(nn.Module):
         return self.dropout(x)
 
 class ByteT2T(nn.Module):
-    def __init__(self, d_model=256, num_layers=8, d_byte=128, num_heads=4, max_seq_len=128, bucket_size=16):
+    def __init__(self, d_model=256, num_layers=8, d_byte=128, num_heads=4, max_seq_len=64, bucket_size=16):
         super().__init__()
         self.positional_encoding = PositionalEncoding(d_model, max_len=max_seq_len)
         self.gbst = GBST(num_tokens=257, dim=d_byte, downsample_factor=4)
@@ -44,4 +44,5 @@ class ByteT2T(nn.Module):
         self.decoder = Reformer(d_model, num_layers, max_seq_len=max_seq_len, heads=num_heads)
         self.detokenizer = Detokenizer(d_model, 257)
 
-
+    def predict(self, input_sentence, ):
+        pass
