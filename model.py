@@ -26,10 +26,11 @@ class Residual(nn.Module):
 class Tokenizer(nn.Module):
     def __init__(self, embedding_dim=512, vocab_size=257, byte_dim=128, num_layers=4, kernel_size=4):
         super().__init__()
-        self.embeddings = nn.Embedding(vocab_size, byte_dim)
+        self.embedding = nn.Embedding(vocab_size, byte_dim)
         self.layers = nn.Sequential(*[Residual(SeparatedConv1d(byte_dim, byte_dim, 3, 1, 1, nn.ReLU)) for _ in range(num_layers)])
         self.last = nn.Conv1d(byte_dim, embedding_dim, kernel_size, kernel_size, 0)
     def forward(self, x):
+        x = self.embedding(x)
         x = torch.transpose(x, 1, 2)
         x = self.layers(x)
         x = self.last(x)
@@ -66,22 +67,21 @@ class PositionalEncoding(nn.Module):
     def forward(self, x):
         x = torch.transpose(x, 0, 1)
         if self.shape:
-            pe = torch.roll(self.pe, 0, random.randint(0, self.pe.shape[0]))
+            pe = torch.roll(self.pe, dims=0, shifts=random.randint(0, self.pe.shape[0]))
         else:
             pe = self.pe
         pe = pe[:x.size(0)]
-
         x = x + pe
         x = torch.transpose(x, 0, 1)
         return self.dropout(x)
 
 class ByteT2T(nn.Module):
-    def __init__(self, d_model=256, num_layers=8, d_byte=128, num_heads=4, max_seq_len=64, bucket_size=16):
+    def __init__(self, d_model=256, num_layers=8, d_byte=128, num_heads=4, max_seq_len=1024, bucket_size=16):
         super().__init__()
         self.encoder_pe = PositionalEncoding(d_model, max_len=max_seq_len)
         self.decoder_pe = PositionalEncoding(d_model, max_len=max_seq_len, shape=False)
-        self.encoder = Reformer(d_model, num_layers, heads=num_heads)
-        self.decoder = Reformer(d_model, num_layers, heads=num_heads)
+        self.encoder = Reformer(d_model, num_layers, heads=num_heads, bucket_size=bucket_size, causal = False)
+        self.decoder = Reformer(d_model, num_layers, heads=num_heads, bucket_size=bucket_size, causal = False)
         self.tokenzer = Tokenizer(d_model, 257)
         self.detokenizer = Detokenizer(d_model, 257)
 
@@ -89,7 +89,7 @@ class ByteT2T(nn.Module):
         src, tgt = self.tokenzer(src), self.tokenzer(tgt)
         src, tgt = self.encoder_pe(src), self.decoder_pe(tgt)
         mem = self.encoder(src)
-        out = self.decoder(src, keys=mem)
+        out = self.decoder(tgt, keys=mem)
         out = self.detokenizer(out)
         return out
 

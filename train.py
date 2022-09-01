@@ -13,4 +13,4 @@ else:
     model = ByteT2T()
     print("Initialized model")
 
-model(torch.randint(low=0, high=255, size=(1, 32)), torch.randint(low=0, high=255, size=(1, 32)))
+model(torch.randint(low=0, high=255, size=(1, 1024)), torch.randint(low=0, high=255, size=(1, 1024)))
